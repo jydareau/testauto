@@ -31,10 +31,10 @@ $groupTags = @(
     "Personnalisé"
 )
 
-# --- Création du formulaire ---
+# --- Création du formulaire principal ---
 $form = New-Object System.Windows.Forms.Form
-$form.Text = "Infos Autopilot & Envoi Webhook"
-$form.Size = New-Object System.Drawing.Size(500,450)
+$form.Text = "Infos Autopilot, Webhook & QR Code"
+$form.Size = New-Object System.Drawing.Size(520,500)
 $form.StartPosition = "CenterScreen"
 
 # Champs affichage
@@ -95,7 +95,7 @@ $txtResult = New-Object System.Windows.Forms.TextBox
 $txtResult.Multiline = $true
 $txtResult.ScrollBars = "Vertical"
 $txtResult.Location = New-Object System.Drawing.Point(10,190)
-$txtResult.Size = New-Object System.Drawing.Size(450,120)
+$txtResult.Size = New-Object System.Drawing.Size(470,120)
 $form.Controls.Add($txtResult)
 
 # Bouton ENVOYER
@@ -105,10 +105,17 @@ $btnSend.Location = New-Object System.Drawing.Point(10,330)
 $btnSend.Size = New-Object System.Drawing.Size(200,30)
 $form.Controls.Add($btnSend)
 
+# Bouton QR Code
+$btnQR = New-Object System.Windows.Forms.Button
+$btnQR.Text = "Afficher QR Code"
+$btnQR.Location = New-Object System.Drawing.Point(220,330)
+$btnQR.Size = New-Object System.Drawing.Size(200,30)
+$form.Controls.Add($btnQR)
+
 # Label pour afficher la réponse
 $lblResp = New-Object System.Windows.Forms.Label
 $lblResp.Location = New-Object System.Drawing.Point(10,370)
-$lblResp.Size = New-Object System.Drawing.Size(450,40)
+$lblResp.Size = New-Object System.Drawing.Size(470,60)
 $lblResp.AutoSize = $false
 $form.Controls.Add($lblResp)
 
@@ -151,6 +158,34 @@ $btnSend.Add_Click({
         }
     } else {
         $lblResp.Text = "UPN ou Hardware Hash manquant."
+    }
+})
+
+# Action QR Code
+$btnQR.Add_Click({
+    $json = $txtResult.Text
+    if (![string]::IsNullOrWhiteSpace($json)) {
+        $encoded = [uri]::EscapeDataString($json)
+        $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=$encoded"
+        $qrFile = "$env:TEMP\autopilot_qrcode.png"
+        try {
+            Invoke-WebRequest -Uri $qrUrl -OutFile $qrFile -UseBasicParsing
+            # Afficher dans une nouvelle fenêtre WinForms
+            $qrForm = New-Object System.Windows.Forms.Form
+            $qrForm.Text = "QR Code"
+            $qrForm.Size = New-Object System.Drawing.Size(340,340)
+            $pic = New-Object System.Windows.Forms.PictureBox
+            $pic.Image = [System.Drawing.Image]::FromFile($qrFile)
+            $pic.SizeMode = "Zoom"
+            $pic.Dock = "Fill"
+            $qrForm.Controls.Add($pic)
+            $qrForm.TopMost = $true
+            $qrForm.ShowDialog()
+        } catch {
+            [System.Windows.Forms.MessageBox]::Show("Erreur lors de la génération ou de l'affichage du QR code.`n$_")
+        }
+    } else {
+        [System.Windows.Forms.MessageBox]::Show("Aucun résultat JSON à encoder.")
     }
 })
 
