@@ -5,7 +5,8 @@ Add-Type -AssemblyName PresentationFramework
         Title="AutoPilot QR - OOBE" WindowStartupLocation="CenterScreen"
         WindowState="Maximized" Background="#FFF7F0" FontFamily="Segoe UI" ResizeMode="NoResize" Topmost="True">
     <Grid>
-        <StackPanel Margin="0,48,0,0" HorizontalAlignment="Center">
+        <StackPanel Margin="0,40,0,0" HorizontalAlignment="Center">
+            <Image Name="LogoImage" Width="90" Height="90" Margin="0,12,0,12"/>
             <Border Background="#fff" CornerRadius="28" Margin="32,0,32,20" Padding="24">
                 <StackPanel>
                     <TextBlock Name="LblSerial" Text="Numéro de série : ..." Foreground="#272728" FontWeight="Bold" FontSize="24" Margin="0,0,0,9"/>
@@ -44,6 +45,20 @@ Add-Type -AssemblyName PresentationFramework
 
 $reader = (New-Object System.Xml.XmlNodeReader $xaml)
 $window = [Windows.Markup.XamlReader]::Load($reader)
+
+# --- Afficher le logo depuis l'URL GitHub "raw"
+$logoUrl = 'https://raw.githubusercontent.com/jydareau/testauto/main/autopilot-shield.png'
+$logoImage = $window.FindName("LogoImage")
+if ($logoImage) {
+    try {
+        $img = New-Object System.Windows.Media.Imaging.BitmapImage
+        $img.BeginInit()
+        $img.UriSource = $logoUrl
+        $img.CacheOption = [System.Windows.Media.Imaging.BitmapCacheOption]::OnLoad
+        $img.EndInit()
+        $logoImage.Source = $img
+    } catch {}
+}
 
 $lblSerial    = $window.FindName("LblSerial")
 $lblBrand     = $window.FindName("LblBrand")
