@@ -2,6 +2,19 @@ Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName PresentationCore
 Add-Type -AssemblyName WindowsBase
 
+# Logo "shield AutoPilot" intégré (miniature 90x90px, fond Peach Fuzz)
+$logoBase64 = @"
+iVBORw0KGgoAAAANSUhEUgAAAIwAAACMCAYAAAD5H/9jAAAACXBIWXMAAAsSAAALEgHS3X78AAACfElEQVR4nO3dvWpUQRiF4fNpIHRCcCAyZEmzAzvCklAEk6QNAZdoSYJJp2aUwX5KZT2yL8PF7OnMTv4Dczz7vnzAyBgwIABAwYMGDAgQYMGDAgQYMGDAgQYMGDAgQYMGDAgQYMGDAgQYMGDKgQQ5OkXtcdQOhcbpN33QOwB7b37C9zFfBzGrfsl5h7uWAd8CmwF7gu/A4MAL+By8BQ8Cw8Dc8B28XvgW4E5wF1wIzgK3gQk8AnR2Lsj3Ptj9wIakbwF3iU8xHBnysZv4WAWwK3j8WQDdB6wF7hb+E0GfAOuBr4Bb8Kx8QO8BQZ/PYmsFbiN5jDKe2jfAzbBRbAm8AybBk8CSwNmwH9ABzAX8AA8y2Zj/58/Y/gXWwufA28KngOXAHPBcH/K1rb/ANs6p1lPhvFgwYMGDAgQYMGDAgQYMGDAgQYMGDAgQYMGDAgQYMGDAgQYMGDAgQYMGDNihfgQgbOsTDQ2TAAAAAElFTkSuQmCC
+"@
+
+function Get-LogoImage {
+    $bytes = [Convert]::FromBase64String($logoBase64)
+    $stream = New-Object System.IO.MemoryStream(,$bytes)
+    $image = New-Object System.Windows.Media.Imaging.PngBitmapDecoder($stream, [System.Windows.Media.Imaging.BitmapCreateOptions]::None, [System.Windows.Media.Imaging.BitmapCacheOption]::OnLoad)
+    $frame = $image.Frames[0]
+    return $frame
+}
+
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         Title="AutoPilot QR - OOBE" WindowStartupLocation="CenterScreen" 
@@ -18,7 +31,6 @@ Add-Type -AssemblyName WindowsBase
                     <TextBlock Name="LblModel"  Text="Modèle : ..." Foreground="#272728" FontWeight="Bold" FontSize="24"/>
                 </StackPanel>
             </Border>
-
             <TextBlock Text="Group Tag" Foreground="#5D90E3" FontWeight="Bold" FontSize="18" Margin="30,2,0,2"/>
             <ComboBox  Name="GroupTagCombo" Margin="32,0,32,12" FontSize="20" Background="#fff" Foreground="#272728" Height="44">
                 <ComboBoxItem>Aucun</ComboBoxItem>
@@ -31,13 +43,10 @@ Add-Type -AssemblyName WindowsBase
                 <ComboBoxItem>Personnalisé</ComboBoxItem>
             </ComboBox>
             <TextBox Name="CustomGroupTag" Margin="32,0,32,12" Padding="9" FontSize="20" Background="#fff" Foreground="#272728" Visibility="Collapsed" Height="44"/>
-
             <TextBlock Text="UPN utilisateur" Foreground="#5D90E3" FontWeight="Bold" FontSize="18" Margin="30,0,0,2"/>
             <TextBox Name="UpnBox" Margin="32,0,32,12" Padding="9" FontSize="20" Background="#fff" Foreground="#272728" Height="44"/>
-
             <TextBlock Text="Token API/Bearer" Foreground="#5D90E3" FontWeight="Bold" FontSize="18" Margin="30,0,0,2"/>
             <PasswordBox Name="TokenBox" Margin="32,0,32,20" Padding="9" FontSize="20" Background="#fff" Foreground="#272728" Height="44"/>
-
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,12,0,22">
                 <Button Name="BtnSend" Content="Envoyer" Width="135" Height="56" Margin="7" Padding="9"
                     Background="#FFC6A0" Foreground="#272728" FontWeight="Bold" BorderThickness="0"  Cursor="Hand"/>
@@ -51,7 +60,7 @@ Add-Type -AssemblyName WindowsBase
 </Window>
 "@
 
-# ----- Script PowerShell pour l'UI -----
+# --- Script PowerShell pour l'UI ---
 $reader = (New-Object System.Xml.XmlNodeReader $xaml)
 $window = [Windows.Markup.XamlReader]::Load($reader)
 
@@ -67,17 +76,12 @@ $btnSend      = $window.FindName("BtnSend")
 $btnQR        = $window.FindName("BtnQR")
 $btnQuit      = $window.FindName("BtnQuit")
 
-# LOGO (remplace ici l'URL par ton logo si tu veux)
-$logoUrl = "https://upload.wikimedia.org/wikipedia/commons/4/48/BLANK_ICON.png"  # à personnaliser !
+# --- Affiche le logo intégré
 try {
-    $img = New-Object System.Windows.Media.Imaging.BitmapImage
-    $img.BeginInit()
-    $img.UriSource = $logoUrl
-    $img.EndInit()
-    $logoImage.Source = $img
+    $logoImage.Source = Get-LogoImage
 } catch {}
 
-# Infos device
+# --- Infos device
 $comp = Get-WmiObject -Class Win32_ComputerSystem
 $manufacturer = $comp.Manufacturer
 $model = $comp.Model
@@ -87,7 +91,7 @@ $lblSerial.Text = "Numéro de série : $serial"
 $lblBrand.Text  = "Marque : $manufacturer"
 $lblModel.Text  = "Modèle : $model"
 
-# Champ perso et option "Aucun"
+# --- Champ perso et option "Aucun"
 $groupTagCombo.Add_SelectionChanged({
     $selected = $groupTagCombo.SelectedItem.Content
     if ($selected -eq "Personnalisé") {
@@ -97,7 +101,7 @@ $groupTagCombo.Add_SelectionChanged({
     }
 })
 
-# Hardware hash
+# --- Hardware hash
 function Get-HardwareHash {
     try {
         $client = Get-WmiObject -Namespace root\cimv2\mdm\dmmap -Class MDM_DevDetail_Ext01 -ErrorAction Stop
@@ -118,7 +122,7 @@ function Get-HardwareHash {
 $global:LastTicketId = ""
 $global:LastSerial   = $serial
 
-# Envoi Webhook
+# --- Envoi Webhook
 $btnSend.Add_Click({
     $groupTag = $groupTagCombo.SelectedItem.Content
     if ($groupTag -eq "Aucun") { $groupTag = "" }
@@ -161,7 +165,7 @@ $btnSend.Add_Click({
     }
 })
 
-# QR code
+# --- QR code
 $btnQR.Add_Click({
     $ticketId = $global:LastTicketId
     if ($ticketId -and $serial) {
@@ -202,7 +206,7 @@ $btnQR.Add_Click({
     }
 })
 
-# Bouton Quitter (avec confirmation)
+# --- Bouton Quitter (avec confirmation)
 $btnQuit.Add_Click({
     $result = [System.Windows.MessageBox]::Show("Voulez-vous vraiment quitter ?", "Confirmer la fermeture", "YesNo", "Question")
     if ($result -eq "Yes") {
@@ -211,9 +215,7 @@ $btnQuit.Add_Click({
     }
 })
 
-# Plein écran dès le départ
+# --- Plein écran dès le départ
 $window.WindowState = 'Maximized'
 $window.Topmost = $true
-
-# Affiche la fenêtre
 $window.ShowDialog() | Out-Null
