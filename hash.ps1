@@ -8,7 +8,7 @@ $Lang = "FR" # Mets "EN" pour anglais
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         Title="AutoPilot QR - OOBE"
         WindowStartupLocation="CenterScreen"
-        Width="1600" Height="1024"
+        Width="1300" Height="900"
         Background="#FFF7F0" FontFamily="Segoe UI" ResizeMode="NoResize" Topmost="True">
     <Grid>
         <Grid.ColumnDefinitions>
