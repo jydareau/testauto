@@ -81,29 +81,31 @@ if ($logoImage) {
 # --- TEXTES MULTILINGUES
 if ($Lang -eq "FR") {
     $window.FindName("TxtTitre").Text = "Bienvenue dans l’assistant AutoPilot"
-    $window.FindName("TxtExplicatif").Text =
-@"Cet outil collecte les informations de votre poste pour un enregistrement AutoPilot facilité :
+    $window.FindName("TxtExplicatif").Text = @"
+Cet outil collecte les informations de votre poste pour un enregistrement AutoPilot facilité :
 • Numéro de série
 • Marque et modèle
 • UPN (identifiant utilisateur)
 • GroupTag (affectation)
 • Hardware Hash (pour Intune)
 
-Vous pouvez ensuite envoyer ces infos via webhook ou générer un QR code pour validation."
+Vous pouvez ensuite envoyer ces infos via webhook ou générer un QR code pour validation.
+"@
     $window.FindName("TxtWarning").Text = "Assurez-vous d’être connecté à Internet."
     $window.FindName("LblUpn").Text = "UPN utilisateur"
     $window.FindName("LblToken").Text = "Token API/Bearer"
 } else {
     $window.FindName("TxtTitre").Text = "Welcome to the AutoPilot Assistant"
-    $window.FindName("TxtExplicatif").Text =
-@"This tool collects your device information for easy AutoPilot registration:
+    $window.FindName("TxtExplicatif").Text = @"
+This tool collects your device information for easy AutoPilot registration:
 • Serial number
 • Brand and model
 • UPN (user identifier)
 • GroupTag (assignment)
 • Hardware Hash (for Intune)
 
-You can then send these details via webhook or generate a QR code for validation."
+You can then send these details via webhook or generate a QR code for validation.
+"@
     $window.FindName("TxtWarning").Text = "Make sure you are connected to the Internet."
     $window.FindName("LblUpn").Text = "User Principal Name (UPN)"
     $window.FindName("LblToken").Text = "API/Bearer Token"
