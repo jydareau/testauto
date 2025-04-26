@@ -2,20 +2,43 @@ Add-Type -AssemblyName PresentationFramework
 
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        Title="AutoPilot QR - OOBE" WindowStartupLocation="CenterScreen"
-        WindowState="Maximized" Background="#FFF7F0" FontFamily="Segoe UI" ResizeMode="NoResize" Topmost="True">
+        Title="AutoPilot QR - OOBE"
+        WindowStartupLocation="CenterScreen"
+        Width="820" Height="520"
+        Background="#FFF7F0" FontFamily="Segoe UI" ResizeMode="NoResize" Topmost="True">
     <Grid>
-        <StackPanel Margin="0,40,0,0" HorizontalAlignment="Center">
-            <Image Name="LogoImage" Width="90" Height="90" Margin="0,12,0,12"/>
-            <Border Background="#fff" CornerRadius="28" Margin="32,0,32,20" Padding="24">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="270"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <!-- Colonne de gauche (explication) -->
+        <StackPanel Grid.Column="0" Background="#FFE4D6" Margin="0,0,0,0" VerticalAlignment="Stretch">
+            <TextBlock Text="Bienvenue dans l’assistant AutoPilot !" Margin="24,38,12,12" 
+                Foreground="#5D90E3" FontWeight="Bold" FontSize="22"/>
+            <TextBlock TextWrapping="Wrap"
+                Text="Cet outil collecte les informations de votre poste pour un enregistrement AutoPilot facilité :
+- Numéro de série
+- Marque et modèle
+- UPN (identifiant utilisateur)
+- GroupTag (affectation)
+- Hardware Hash (pour Intune)
+Vous pouvez ensuite envoyer ces infos via webhook ou générer un QR code pour validation."
+                Margin="24,0,18,0" FontSize="16" Foreground="#282828"/>
+            <TextBlock Text="Assurez-vous d’être connecté à Internet." Margin="24,28,10,0" FontSize="14" Foreground="#B87C46"/>
+        </StackPanel>
+        <!-- Colonne de droite (formulaire) -->
+        <StackPanel Grid.Column="1" Margin="0,20,0,0" HorizontalAlignment="Center">
+            <Image Name="LogoImage" Width="90" Height="90" Margin="0,10,0,2"/>
+            <TextBlock Text="AutoPilot" HorizontalAlignment="Center" FontSize="18" Foreground="#282828" Margin="0,0,0,16"/>
+            <Border Background="#fff" CornerRadius="28" Margin="18,0,18,18" Padding="24">
                 <StackPanel>
-                    <TextBlock Name="LblSerial" Text="Numéro de série : ..." Foreground="#272728" FontWeight="Bold" FontSize="24" Margin="0,0,0,9"/>
-                    <TextBlock Name="LblBrand"  Text="Marque : ..." Foreground="#272728" FontWeight="Bold" FontSize="24" Margin="0,0,0,9"/>
-                    <TextBlock Name="LblModel"  Text="Modèle : ..." Foreground="#272728" FontWeight="Bold" FontSize="24"/>
+                    <TextBlock Name="LblSerial" Text="Numéro de série : ..." Foreground="#272728" FontWeight="Bold" FontSize="22" Margin="0,0,0,8"/>
+                    <TextBlock Name="LblBrand"  Text="Marque : ..." Foreground="#272728" FontWeight="Bold" FontSize="22" Margin="0,0,0,8"/>
+                    <TextBlock Name="LblModel"  Text="Modèle : ..." Foreground="#272728" FontWeight="Bold" FontSize="22"/>
                 </StackPanel>
             </Border>
-            <TextBlock Text="Group Tag" Foreground="#5D90E3" FontWeight="Bold" FontSize="18" Margin="30,2,0,2"/>
-            <ComboBox  Name="GroupTagCombo" Margin="32,0,32,12" FontSize="20" Background="#fff" Foreground="#272728" Height="44">
+            <TextBlock Text="Group Tag" Foreground="#5D90E3" FontWeight="Bold" FontSize="16" Margin="18,2,0,2"/>
+            <ComboBox  Name="GroupTagCombo" Margin="18,0,18,10" FontSize="18" Background="#fff" Foreground="#272728" Height="40">
                 <ComboBoxItem>Aucun</ComboBoxItem>
                 <ComboBoxItem>VIP-Devices</ComboBoxItem>
                 <ComboBoxItem>Direction</ComboBoxItem>
@@ -25,17 +48,17 @@ Add-Type -AssemblyName PresentationFramework
                 <ComboBoxItem>Stagiaire</ComboBoxItem>
                 <ComboBoxItem>Personnalisé</ComboBoxItem>
             </ComboBox>
-            <TextBox Name="CustomGroupTag" Margin="32,0,32,12" Padding="9" FontSize="20" Background="#fff" Foreground="#272728" Visibility="Collapsed" Height="44"/>
-            <TextBlock Text="UPN utilisateur" Foreground="#5D90E3" FontWeight="Bold" FontSize="18" Margin="30,0,0,2"/>
-            <TextBox Name="UpnBox" Margin="32,0,32,12" Padding="9" FontSize="20" Background="#fff" Foreground="#272728" Height="44"/>
-            <TextBlock Text="Token API/Bearer" Foreground="#5D90E3" FontWeight="Bold" FontSize="18" Margin="30,0,0,2"/>
-            <PasswordBox Name="TokenBox" Margin="32,0,32,20" Padding="9" FontSize="20" Background="#fff" Foreground="#272728" Height="44"/>
+            <TextBox Name="CustomGroupTag" Margin="18,0,18,10" Padding="9" FontSize="18" Background="#fff" Foreground="#272728" Visibility="Collapsed" Height="38"/>
+            <TextBlock Text="UPN utilisateur" Foreground="#5D90E3" FontWeight="Bold" FontSize="16" Margin="18,0,0,2"/>
+            <TextBox Name="UpnBox" Margin="18,0,18,10" Padding="9" FontSize="18" Background="#fff" Foreground="#272728" Height="38"/>
+            <TextBlock Text="Token API/Bearer" Foreground="#5D90E3" FontWeight="Bold" FontSize="16" Margin="18,0,0,2"/>
+            <PasswordBox Name="TokenBox" Margin="18,0,18,18" Padding="9" FontSize="18" Background="#fff" Foreground="#272728" Height="38"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,12,0,22">
-                <Button Name="BtnSend" Content="Envoyer" Width="135" Height="56" Margin="7" Padding="9"
+                <Button Name="BtnSend" Content="Envoyer" Width="120" Height="46" Margin="7" Padding="7"
                     Background="#FFC6A0" Foreground="#272728" FontWeight="Bold" BorderThickness="0"  Cursor="Hand"/>
-                <Button Name="BtnQR" Content="QR Code" Width="110" Height="56" Margin="7" Padding="9"
+                <Button Name="BtnQR" Content="QR Code" Width="100" Height="46" Margin="7" Padding="7"
                     Background="#5D90E3" Foreground="#fff" FontWeight="Bold" BorderThickness="0" Cursor="Hand"/>
-                <Button Name="BtnQuit" Content="Quitter" Width="90" Height="56" Margin="7" Padding="9"
+                <Button Name="BtnQuit" Content="Quitter" Width="85" Height="46" Margin="7" Padding="7"
                     Background="#FFD1B2" Foreground="#B81E1E" FontWeight="Bold" BorderThickness="0" Cursor="Hand"/>
             </StackPanel>
         </StackPanel>
@@ -71,7 +94,7 @@ $btnSend      = $window.FindName("BtnSend")
 $btnQR        = $window.FindName("BtnQR")
 $btnQuit      = $window.FindName("BtnQuit")
 
-# --- Infos device
+# --- Infos device (accentué, encodé en UTF-8)
 $comp = Get-WmiObject -Class Win32_ComputerSystem
 $manufacturer = $comp.Manufacturer
 $model = $comp.Model
@@ -143,7 +166,7 @@ $btnSend.Add_Click({
             $resp = Invoke-RestMethod -Uri $webhookUrl -Headers $headers -Method POST -Body $json -ContentType "application/json"
             if ($resp.ticketId) {
                 $global:LastTicketId = $resp.ticketId
-                [System.Windows.MessageBox]::Show("Numéro de ticket : $($resp.ticketId)`nScannez le QR code pour valider/importer.", "Envoyé", "OK", "Info")
+                [System.Windows.MessageBox]::Show("Numéro de ticket : $($resp.ticketId)`nScannez le QR code pour valider/importer.", "Envoyé", "OK", "Info")
             } else {
                 [System.Windows.MessageBox]::Show("Webhook envoyé, réponse : $resp")
             }
@@ -189,7 +212,7 @@ $btnQR.Add_Click({
             $qrWindow.Topmost = $true
             $qrWindow.ShowDialog() | Out-Null
         } catch {
-            [System.Windows.MessageBox]::Show("Erreur génération QR code : $_")
+            [System.Windows.MessageBox]::Show("Erreur génération QR code : $_")
         }
     } else {
         [System.Windows.MessageBox]::Show("Aucun ticketId disponible. Envoie d'abord au webhook !")
@@ -205,7 +228,6 @@ $btnQuit.Add_Click({
     }
 })
 
-# --- Plein écran dès le départ
-$window.WindowState = 'Maximized'
+# --- Affichage de la fenêtre
 $window.Topmost = $true
 $window.ShowDialog() | Out-Null
