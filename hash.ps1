@@ -1,193 +1,219 @@
-Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName PresentationFramework
+Add-Type -AssemblyName PresentationCore
+Add-Type -AssemblyName WindowsBase
 
-# --- Récupération des infos poste ---
-$serial = (Get-WmiObject -Class Win32_BIOS).SerialNumber
-$productId = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ProductId
+[xml]$xaml = @"
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        Title="AutoPilot QR - OOBE" WindowStartupLocation="CenterScreen" 
+        WindowState="Maximized" Background="#FFF7F0" FontFamily="Segoe UI" ResizeMode="NoResize" Topmost="True">
+    <Grid>
+        <StackPanel Margin="0,48,0,0" HorizontalAlignment="Center">
+            <Border Background="#FFD1B2" CornerRadius="65" Width="130" Height="130" Margin="0,0,0,24" HorizontalAlignment="Center">
+                <Image Name="LogoImage" Width="90" Height="90" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0"/>
+            </Border>
+            <Border Background="#fff" CornerRadius="28" Margin="32,0,32,20" Padding="24">
+                <StackPanel>
+                    <TextBlock Name="LblSerial" Text="Numéro de série : ..." Foreground="#272728" FontWeight="Bold" FontSize="24" Margin="0,0,0,9"/>
+                    <TextBlock Name="LblBrand"  Text="Marque : ..." Foreground="#272728" FontWeight="Bold" FontSize="24" Margin="0,0,0,9"/>
+                    <TextBlock Name="LblModel"  Text="Modèle : ..." Foreground="#272728" FontWeight="Bold" FontSize="24"/>
+                </StackPanel>
+            </Border>
 
-# --- Hardware Hash : WMI MDM ou MdmDiagnosticsTool ---
-$hash = $null
+            <TextBlock Text="Group Tag" Foreground="#5D90E3" FontWeight="Bold" FontSize="18" Margin="30,2,0,2"/>
+            <ComboBox  Name="GroupTagCombo" Margin="32,0,32,12" FontSize="20" Background="#fff" Foreground="#272728" Height="44">
+                <ComboBoxItem>Aucun</ComboBoxItem>
+                <ComboBoxItem>VIP-Devices</ComboBoxItem>
+                <ComboBoxItem>Direction</ComboBoxItem>
+                <ComboBoxItem>RH</ComboBoxItem>
+                <ComboBoxItem>Comptabilité</ComboBoxItem>
+                <ComboBoxItem>IT</ComboBoxItem>
+                <ComboBoxItem>Stagiaire</ComboBoxItem>
+                <ComboBoxItem>Personnalisé</ComboBoxItem>
+            </ComboBox>
+            <TextBox Name="CustomGroupTag" Margin="32,0,32,12" Padding="9" FontSize="20" Background="#fff" Foreground="#272728" Visibility="Collapsed" Height="44" PlaceholderText="Group Tag personnalisé"/>
+
+            <TextBlock Text="UPN utilisateur" Foreground="#5D90E3" FontWeight="Bold" FontSize="18" Margin="30,0,0,2"/>
+            <TextBox Name="UpnBox" Margin="32,0,32,12" Padding="9" FontSize="20" Background="#fff" Foreground="#272728" Height="44"/>
+
+            <TextBlock Text="Token API/Bearer" Foreground="#5D90E3" FontWeight="Bold" FontSize="18" Margin="30,0,0,2"/>
+            <PasswordBox Name="TokenBox" Margin="32,0,32,20" Padding="9" FontSize="20" Background="#fff" Foreground="#272728" Height="44"/>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,12,0,22">
+                <Button Name="BtnSend" Content="Envoyer" Width="135" Height="56" Margin="7" Padding="9"
+                    Background="#FFC6A0" Foreground="#272728" FontWeight="Bold" BorderThickness="0"  Cursor="Hand"/>
+                <Button Name="BtnQR" Content="QR Code" Width="110" Height="56" Margin="7" Padding="9"
+                    Background="#5D90E3" Foreground="#fff" FontWeight="Bold" BorderThickness="0" Cursor="Hand"/>
+                <Button Name="BtnQuit" Content="Quitter" Width="90" Height="56" Margin="7" Padding="9"
+                    Background="#FFD1B2" Foreground="#B81E1E" FontWeight="Bold" BorderThickness="0" Cursor="Hand"/>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>
+"@
+
+# Récupération des éléments
+$reader = (New-Object System.Xml.XmlNodeReader $xaml)
+$window = [Windows.Markup.XamlReader]::Load($reader)
+
+$logoImage    = $window.FindName("LogoImage")
+$lblSerial    = $window.FindName("LblSerial")
+$lblBrand     = $window.FindName("LblBrand")
+$lblModel     = $window.FindName("LblModel")
+$groupTagCombo= $window.FindName("GroupTagCombo")
+$customTagBox = $window.FindName("CustomGroupTag")
+$upnBox       = $window.FindName("UpnBox")
+$tokenBox     = $window.FindName("TokenBox")
+$btnSend      = $window.FindName("BtnSend")
+$btnQR        = $window.FindName("BtnQR")
+$btnQuit      = $window.FindName("BtnQuit")
+
+# LOGO (remplace ici l'URL par ton logo)
+$logoUrl = "https://upload.wikimedia.org/wikipedia/commons/4/48/BLANK_ICON.png"  # à personnaliser !
 try {
-    $client = Get-WmiObject -Namespace root\cimv2\mdm\dmmap -Class MDM_DevDetail_Ext01 -ErrorAction Stop
-    $hash = $client.DeviceHardwareData
-} catch {
-    $csvFile = "$env:TEMP\AutoPilotHWID.csv"
-    Start-Process -FilePath "C:\Windows\System32\MdmDiagnosticsTool.exe" -ArgumentList "-autopilot", "-output", "$csvFile" -Wait
-    if (Test-Path $csvFile) {
-        $csv = Import-Csv $csvFile
-        $hash = $csv[0].'Hardware Hash'
-        Remove-Item $csvFile -ErrorAction SilentlyContinue
-    }
-}
+    $img = New-Object System.Windows.Media.Imaging.BitmapImage
+    $img.BeginInit()
+    $img.UriSource = $logoUrl
+    $img.EndInit()
+    $logoImage.Source = $img
+} catch {}
 
-# --- Liste des Group Tag prédéfinis ---
-$groupTags = @(
-    "VIP-Devices",
-    "Direction",
-    "RH",
-    "Comptabilité",
-    "IT",
-    "Stagiaire",
-    "Aucun",
-    "Personnalisé"
-)
+# Infos device
+$comp = Get-WmiObject -Class Win32_ComputerSystem
+$manufacturer = $comp.Manufacturer
+$model = $comp.Model
+$serial = (Get-WmiObject -Class Win32_BIOS).SerialNumber
 
-# --- Création du formulaire principal ---
-$form = New-Object System.Windows.Forms.Form
-$form.Text = "Infos Autopilot, Webhook & QR Code"
-$form.Size = New-Object System.Drawing.Size(520,500)
-$form.StartPosition = "CenterScreen"
+$lblSerial.Text = "Numéro de série : $serial"
+$lblBrand.Text  = "Marque : $manufacturer"
+$lblModel.Text  = "Modèle : $model"
 
-# Champs affichage
-$lblSerial = New-Object System.Windows.Forms.Label
-$lblSerial.Text = "Serial Number : $serial"
-$lblSerial.AutoSize = $true
-$lblSerial.Location = New-Object System.Drawing.Point(10,20)
-$form.Controls.Add($lblSerial)
-
-$lblProduct = New-Object System.Windows.Forms.Label
-$lblProduct.Text = "Windows Product ID : $productId"
-$lblProduct.AutoSize = $true
-$lblProduct.Location = New-Object System.Drawing.Point(10,50)
-$form.Controls.Add($lblProduct)
-
-$lblHash = New-Object System.Windows.Forms.Label
-$lblHash.Text = "Hardware Hash : " + ($(if ($hash) { "OK" } else { "Non disponible" }))
-$lblHash.AutoSize = $true
-$lblHash.Location = New-Object System.Drawing.Point(10,80)
-$form.Controls.Add($lblHash)
-
-# Combobox Group Tag
-$lblGroup = New-Object System.Windows.Forms.Label
-$lblGroup.Text = "Group Tag :"
-$lblGroup.Location = New-Object System.Drawing.Point(10,120)
-$lblGroup.Size = New-Object System.Drawing.Size(80,20)
-$form.Controls.Add($lblGroup)
-
-$cmbGroup = New-Object System.Windows.Forms.ComboBox
-$cmbGroup.Location = New-Object System.Drawing.Point(100,115)
-$cmbGroup.Size = New-Object System.Drawing.Size(200,20)
-$cmbGroup.Items.AddRange($groupTags)
-$cmbGroup.SelectedIndex = 0
-$form.Controls.Add($cmbGroup)
-
-# Champ texte pour Group Tag personnalisé (masqué par défaut)
-$txtGroup = New-Object System.Windows.Forms.TextBox
-$txtGroup.Location = New-Object System.Drawing.Point(310,115)
-$txtGroup.Size = New-Object System.Drawing.Size(150,20)
-$txtGroup.Visible = $false
-$form.Controls.Add($txtGroup)
-
-# Label UPN
-$lblUpn = New-Object System.Windows.Forms.Label
-$lblUpn.Text = "User Principal Name (UPN) :"
-$lblUpn.Location = New-Object System.Drawing.Point(10,160)
-$lblUpn.Size = New-Object System.Drawing.Size(180,20)
-$form.Controls.Add($lblUpn)
-
-# TextBox UPN
-$txtUpn = New-Object System.Windows.Forms.TextBox
-$txtUpn.Location = New-Object System.Drawing.Point(190,155)
-$txtUpn.Size = New-Object System.Drawing.Size(210,20)
-$form.Controls.Add($txtUpn)
-
-# Affichage résultat JSON
-$txtResult = New-Object System.Windows.Forms.TextBox
-$txtResult.Multiline = $true
-$txtResult.ScrollBars = "Vertical"
-$txtResult.Location = New-Object System.Drawing.Point(10,190)
-$txtResult.Size = New-Object System.Drawing.Size(470,120)
-$form.Controls.Add($txtResult)
-
-# Bouton ENVOYER
-$btnSend = New-Object System.Windows.Forms.Button
-$btnSend.Text = "Envoyer au Webhook"
-$btnSend.Location = New-Object System.Drawing.Point(10,330)
-$btnSend.Size = New-Object System.Drawing.Size(200,30)
-$form.Controls.Add($btnSend)
-
-# Bouton QR Code
-$btnQR = New-Object System.Windows.Forms.Button
-$btnQR.Text = "Afficher QR Code"
-$btnQR.Location = New-Object System.Drawing.Point(220,330)
-$btnQR.Size = New-Object System.Drawing.Size(200,30)
-$form.Controls.Add($btnQR)
-
-# Label pour afficher la réponse
-$lblResp = New-Object System.Windows.Forms.Label
-$lblResp.Location = New-Object System.Drawing.Point(10,370)
-$lblResp.Size = New-Object System.Drawing.Size(470,60)
-$lblResp.AutoSize = $false
-$form.Controls.Add($lblResp)
-
-# Affichage du champ personnalisé si besoin
-$cmbGroup.Add_SelectedIndexChanged({
-    if ($cmbGroup.SelectedItem -eq "Personnalisé") {
-        $txtGroup.Visible = $true
+# Champ perso et option "Aucun"
+$groupTagCombo.Add_SelectionChanged({
+    $selected = $groupTagCombo.SelectedItem.Content
+    if ($selected -eq "Personnalisé") {
+        $customTagBox.Visibility = "Visible"
     } else {
-        $txtGroup.Visible = $false
+        $customTagBox.Visibility = "Collapsed"
     }
 })
 
-# Action ENVOYER
+# Hardware hash
+function Get-HardwareHash {
+    try {
+        $client = Get-WmiObject -Namespace root\cimv2\mdm\dmmap -Class MDM_DevDetail_Ext01 -ErrorAction Stop
+        return $client.DeviceHardwareData
+    } catch {
+        $csvFile = "$env:TEMP\AutoPilotHWID.csv"
+        Start-Process -FilePath "C:\Windows\System32\MdmDiagnosticsTool.exe" -ArgumentList "-autopilot", "-output", "$csvFile" -Wait
+        if (Test-Path $csvFile) {
+            $csv = Import-Csv $csvFile
+            $hash = $csv[0].'Hardware Hash'
+            Remove-Item $csvFile -ErrorAction SilentlyContinue
+            return $hash
+        }
+    }
+    return $null
+}
+
+$global:LastTicketId = ""
+$global:LastSerial   = $serial
+
+# Envoi Webhook
 $btnSend.Add_Click({
-    $grp = $cmbGroup.SelectedItem
-    if ($grp -eq "Aucun") { $grp = "" }
-    if ($grp -eq "Personnalisé") { $grp = $txtGroup.Text }
-    $upn = $txtUpn.Text
+    $groupTag = $groupTagCombo.SelectedItem.Content
+    if ($groupTag -eq "Aucun") { $groupTag = "" }
+    if ($groupTag -eq "Personnalisé") { $groupTag = $customTagBox.Text }
+    $upn = $upnBox.Text
+    $token = $tokenBox.Password
+
+    $productId = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ProductId
+    $hash = Get-HardwareHash
 
     $payload = [PSCustomObject]@{
         "Device Serial Number"  = $serial
         "Windows Product ID"    = $productId
         "Hardware Hash"         = $hash
-        "Group Tag"             = $grp
+        "Group Tag"             = $groupTag
         "User Principal Name"   = $upn
+        "Manufacturer"          = $manufacturer
+        "Model"                 = $model
     }
 
     $json = $payload | ConvertTo-Json
-    $txtResult.Text = $json
 
-    # Webhook à personnaliser ici !
     $webhookUrl = "https://TON_WEBHOOK_URL"
 
-    if ($hash -and $upn) {
+    if ($hash -and $upn -and $token) {
         try {
-            $resp = Invoke-RestMethod -Uri $webhookUrl -Method POST -Body $json -ContentType "application/json"
-            $lblResp.Text = "Webhook envoyé ! Réponse : $resp"
+            $headers = @{ "Authorization" = "Bearer $token" }
+            $resp = Invoke-RestMethod -Uri $webhookUrl -Headers $headers -Method POST -Body $json -ContentType "application/json"
+            if ($resp.ticketId) {
+                $global:LastTicketId = $resp.ticketId
+                [System.Windows.MessageBox]::Show("Numéro de ticket : $($resp.ticketId)`nScannez le QR code pour valider/importer.", "Envoyé", "OK", "Info")
+            } else {
+                [System.Windows.MessageBox]::Show("Webhook envoyé, réponse : $resp")
+            }
         } catch {
-            $lblResp.Text = "Erreur lors de l'envoi : $_"
+            [System.Windows.MessageBox]::Show("Erreur lors de l'envoi : $_")
         }
     } else {
-        $lblResp.Text = "UPN ou Hardware Hash manquant."
+        [System.Windows.MessageBox]::Show("UPN, Hardware Hash ou Token manquant.")
     }
 })
 
-# Action QR Code
+# QR code
 $btnQR.Add_Click({
-    $json = $txtResult.Text
-    if (![string]::IsNullOrWhiteSpace($json)) {
-        $encoded = [uri]::EscapeDataString($json)
-        $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=$encoded"
-        $qrFile = "$env:TEMP\autopilot_qrcode.png"
+    $ticketId = $global:LastTicketId
+    if ($ticketId -and $serial) {
+        $qrObj = [PSCustomObject]@{
+            "Ticket" = $ticketId
+            "Serial" = $serial
+            "Manufacturer" = $manufacturer
+            "Model" = $model
+        }
+        $qrPayload = $qrObj | ConvertTo-Json -Compress
+        $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=$([uri]::EscapeDataString($qrPayload))"
+        $qrFile = "$env:TEMP\ticketid_qrcode.png"
         try {
             Invoke-WebRequest -Uri $qrUrl -OutFile $qrFile -UseBasicParsing
-            # Afficher dans une nouvelle fenêtre WinForms
-            $qrForm = New-Object System.Windows.Forms.Form
-            $qrForm.Text = "QR Code"
-            $qrForm.Size = New-Object System.Drawing.Size(340,340)
-            $pic = New-Object System.Windows.Forms.PictureBox
-            $pic.Image = [System.Drawing.Image]::FromFile($qrFile)
-            $pic.SizeMode = "Zoom"
-            $pic.Dock = "Fill"
-            $qrForm.Controls.Add($pic)
-            $qrForm.TopMost = $true
-            $qrForm.ShowDialog()
+            $img = [System.Windows.Media.Imaging.BitmapImage]::new()
+            $stream = [System.IO.File]::OpenRead($qrFile)
+            $img.BeginInit()
+            $img.StreamSource = $stream
+            $img.CacheOption = [System.Windows.Media.Imaging.BitmapCacheOption]::OnLoad
+            $img.EndInit()
+            $stream.Close()
+            $qrWindow = New-Object Windows.Window
+            $qrWindow.Title = "QR Code Ticket"
+            $qrWindow.Width = 450
+            $qrWindow.Height = 480
+            $imgCtrl = New-Object System.Windows.Controls.Image
+            $imgCtrl.Source = $img
+            $imgCtrl.Margin = '24'
+            $qrWindow.Content = $imgCtrl
+            $qrWindow.WindowStartupLocation = "CenterScreen"
+            $qrWindow.Topmost = $true
+            $qrWindow.ShowDialog() | Out-Null
         } catch {
-            [System.Windows.Forms.MessageBox]::Show("Erreur lors de la génération ou de l'affichage du QR code.`n$_")
+            [System.Windows.MessageBox]::Show("Erreur génération QR code : $_")
         }
     } else {
-        [System.Windows.Forms.MessageBox]::Show("Aucun résultat JSON à encoder.")
+        [System.Windows.MessageBox]::Show("Aucun ticketId disponible. Envoie d'abord au webhook !")
     }
 })
 
-# Affichage du formulaire
-[void]$form.ShowDialog()
+# Bouton Quitter (avec confirmation)
+$btnQuit.Add_Click({
+    $result = [System.Windows.MessageBox]::Show("Voulez-vous vraiment quitter ?", "Confirmer la fermeture", "YesNo", "Question")
+    if ($result -eq "Yes") {
+        $window.Close()
+        Stop-Process -Id $PID
+    }
+})
+
+# Plein écran dès le départ
+$window.WindowState = 'Maximized'
+$window.Topmost = $true
+
+# Affiche la fenêtre
+$window.ShowDialog() | Out-Null
