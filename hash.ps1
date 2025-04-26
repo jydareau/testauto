@@ -11,7 +11,7 @@ Add-Type -AssemblyName WindowsBase
             <Border Background="#FFD1B2" CornerRadius="65" Width="130" Height="130" Margin="0,0,0,24" HorizontalAlignment="Center">
                 <Image Name="LogoImage" Width="90" Height="90" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0"/>
             </Border>
-            <Border Background="#fff" CornerRadius="28" Margin="32,0,32,20" Padding="24" Effect="{DynamicResource DropShadowEffect}">
+            <Border Background="#fff" CornerRadius="28" Margin="32,0,32,20" Padding="24">
                 <StackPanel>
                     <TextBlock Name="LblSerial" Text="Numéro de série : ..." Foreground="#272728" FontWeight="Bold" FontSize="24" Margin="0,0,0,9"/>
                     <TextBlock Name="LblBrand"  Text="Marque : ..." Foreground="#272728" FontWeight="Bold" FontSize="24" Margin="0,0,0,9"/>
@@ -21,6 +21,7 @@ Add-Type -AssemblyName WindowsBase
 
             <TextBlock Text="Group Tag" Foreground="#5D90E3" FontWeight="Bold" FontSize="18" Margin="30,2,0,2"/>
             <ComboBox  Name="GroupTagCombo" Margin="32,0,32,12" FontSize="20" Background="#fff" Foreground="#272728" Height="44">
+                <ComboBoxItem>Aucun</ComboBoxItem>
                 <ComboBoxItem>VIP-Devices</ComboBoxItem>
                 <ComboBoxItem>Direction</ComboBoxItem>
                 <ComboBoxItem>RH</ComboBoxItem>
@@ -29,7 +30,7 @@ Add-Type -AssemblyName WindowsBase
                 <ComboBoxItem>Stagiaire</ComboBoxItem>
                 <ComboBoxItem>Personnalisé</ComboBoxItem>
             </ComboBox>
-            <TextBox Name="CustomGroupTag" Margin="32,0,32,12" Padding="9" FontSize="20" Background="#fff" Foreground="#272728" Visibility="Collapsed" Height="44" PlaceholderText="Group Tag personnalisé"/>
+            <TextBox Name="CustomGroupTag" Margin="32,0,32,12" Padding="9" FontSize="20" Background="#fff" Foreground="#272728" Visibility="Collapsed" Height="44"/>
 
             <TextBlock Text="UPN utilisateur" Foreground="#5D90E3" FontWeight="Bold" FontSize="18" Margin="30,0,0,2"/>
             <TextBox Name="UpnBox" Margin="32,0,32,12" Padding="9" FontSize="20" Background="#fff" Foreground="#272728" Height="44"/>
@@ -38,26 +39,22 @@ Add-Type -AssemblyName WindowsBase
             <PasswordBox Name="TokenBox" Margin="32,0,32,20" Padding="9" FontSize="20" Background="#fff" Foreground="#272728" Height="44"/>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,12,0,22">
-                <Button Name="BtnSend" Content="Envoyer" Width="170" Height="56" Margin="10" Padding="9"
+                <Button Name="BtnSend" Content="Envoyer" Width="135" Height="56" Margin="7" Padding="9"
                     Background="#FFC6A0" Foreground="#272728" FontWeight="Bold" BorderThickness="0"  Cursor="Hand"/>
-                <Button Name="BtnQR" Content="QR Code" Width="150" Height="56" Margin="10" Padding="9"
+                <Button Name="BtnQR" Content="QR Code" Width="110" Height="56" Margin="7" Padding="9"
                     Background="#5D90E3" Foreground="#fff" FontWeight="Bold" BorderThickness="0" Cursor="Hand"/>
+                <Button Name="BtnQuit" Content="Quitter" Width="90" Height="56" Margin="7" Padding="9"
+                    Background="#FFD1B2" Foreground="#B81E1E" FontWeight="Bold" BorderThickness="0" Cursor="Hand"/>
             </StackPanel>
         </StackPanel>
     </Grid>
 </Window>
 "@
 
-# Ombre douce (effet carte)
-$windowResources = $window.Resources
-$DropShadow = New-Object System.Windows.Media.Effects.DropShadowEffect
-$DropShadow.BlurRadius = 18
-$DropShadow.Opacity = 0.2
-$DropShadow.ShadowDepth = 3
-$DropShadow.Color = "#FFD1B2"
-$windowResources.Add("DropShadowEffect", $DropShadow)
-
 # Récupération des éléments
+$reader = (New-Object System.Xml.XmlNodeReader $xaml)
+$window = [Windows.Markup.XamlReader]::Load($reader)
+
 $logoImage    = $window.FindName("LogoImage")
 $lblSerial    = $window.FindName("LblSerial")
 $lblBrand     = $window.FindName("LblBrand")
@@ -68,9 +65,10 @@ $upnBox       = $window.FindName("UpnBox")
 $tokenBox     = $window.FindName("TokenBox")
 $btnSend      = $window.FindName("BtnSend")
 $btnQR        = $window.FindName("BtnQR")
+$btnQuit      = $window.FindName("BtnQuit")
 
-# LOGO
-$logoUrl = "https://upload.wikimedia.org/wikipedia/commons/4/48/BLANK_ICON.png"  # à remplacer !
+# LOGO (remplace ici l'URL par ton logo)
+$logoUrl = "https://upload.wikimedia.org/wikipedia/commons/4/48/BLANK_ICON.png"  # à personnaliser !
 try {
     $img = New-Object System.Windows.Media.Imaging.BitmapImage
     $img.BeginInit()
@@ -89,15 +87,17 @@ $lblSerial.Text = "Numéro de série : $serial"
 $lblBrand.Text  = "Marque : $manufacturer"
 $lblModel.Text  = "Modèle : $model"
 
-# Champ perso
+# Champ perso et option "Aucun"
 $groupTagCombo.Add_SelectionChanged({
-    if ($groupTagCombo.SelectedItem.Content -eq "Personnalisé") {
+    $selected = $groupTagCombo.SelectedItem.Content
+    if ($selected -eq "Personnalisé") {
         $customTagBox.Visibility = "Visible"
     } else {
         $customTagBox.Visibility = "Collapsed"
     }
 })
 
+# Hardware hash
 function Get-HardwareHash {
     try {
         $client = Get-WmiObject -Namespace root\cimv2\mdm\dmmap -Class MDM_DevDetail_Ext01 -ErrorAction Stop
@@ -121,6 +121,7 @@ $global:LastSerial   = $serial
 # Envoi Webhook
 $btnSend.Add_Click({
     $groupTag = $groupTagCombo.SelectedItem.Content
+    if ($groupTag -eq "Aucun") { $groupTag = "" }
     if ($groupTag -eq "Personnalisé") { $groupTag = $customTagBox.Text }
     $upn = $upnBox.Text
     $token = $tokenBox.Password
@@ -201,7 +202,16 @@ $btnQR.Add_Click({
     }
 })
 
-# Plein écran dès le départ (pour bien couvrir OOBE)
+# Bouton Quitter (avec confirmation)
+$btnQuit.Add_Click({
+    $result = [System.Windows.MessageBox]::Show("Voulez-vous vraiment quitter ?", "Confirmer la fermeture", "YesNo", "Question")
+    if ($result -eq "Yes") {
+        $window.Close()
+        Stop-Process -Id $PID
+    }
+})
+
+# Plein écran dès le départ
 $window.WindowState = 'Maximized'
 $window.Topmost = $true
 
