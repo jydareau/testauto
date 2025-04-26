@@ -51,7 +51,7 @@ Add-Type -AssemblyName WindowsBase
 </Window>
 "@
 
-# Récupération des éléments
+# ----- Script PowerShell pour l'UI -----
 $reader = (New-Object System.Xml.XmlNodeReader $xaml)
 $window = [Windows.Markup.XamlReader]::Load($reader)
 
@@ -67,7 +67,7 @@ $btnSend      = $window.FindName("BtnSend")
 $btnQR        = $window.FindName("BtnQR")
 $btnQuit      = $window.FindName("BtnQuit")
 
-# LOGO (remplace ici l'URL par ton logo)
+# LOGO (remplace ici l'URL par ton logo si tu veux)
 $logoUrl = "https://upload.wikimedia.org/wikipedia/commons/4/48/BLANK_ICON.png"  # à personnaliser !
 try {
     $img = New-Object System.Windows.Media.Imaging.BitmapImage
@@ -141,7 +141,7 @@ $btnSend.Add_Click({
 
     $json = $payload | ConvertTo-Json
 
-    $webhookUrl = "https://TON_WEBHOOK_URL"
+    $webhookUrl = "https://TON_WEBHOOK_URL"   # Personnalise ici !
 
     if ($hash -and $upn -and $token) {
         try {
