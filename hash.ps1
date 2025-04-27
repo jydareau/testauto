@@ -1,4 +1,7 @@
 Add-Type -AssemblyName PresentationFramework
+# Forcer la console et PowerShell à comprendre l’UTF-8 (accents OK partout)
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+if ($PSVersionTable.PSVersion.Major -ge 6) { $OutputEncoding = [System.Text.Encoding]::UTF8 }
 
 # -------- LANGUE --------
 $Lang = "FR" # Mets "EN" pour anglais
@@ -8,7 +11,7 @@ $Lang = "FR" # Mets "EN" pour anglais
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         Title="AutoPilot QR - OOBE"
         WindowStartupLocation="CenterScreen"
-        Width="1100" Height="700"
+        Width="1100" Height="800"
         Background="#FFF7F0" FontFamily="Segoe UI" ResizeMode="NoResize" Topmost="True">
     <Grid>
         <Grid.ColumnDefinitions>
