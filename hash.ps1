@@ -8,7 +8,7 @@ $Lang = "FR" # Mets "EN" pour anglais
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         Title="AutoPilot QR - OOBE"
         WindowStartupLocation="CenterScreen"
-        Width="1000" Height="800"
+        Width="1100" Height="700"
         Background="#FFF7F0" FontFamily="Segoe UI" ResizeMode="NoResize" Topmost="True">
     <Grid>
         <Grid.ColumnDefinitions>
@@ -17,24 +17,24 @@ $Lang = "FR" # Mets "EN" pour anglais
         </Grid.ColumnDefinitions>
         <!-- Colonne de gauche -->
         <StackPanel Grid.Column="0" Background="#FFE4D6" Margin="0,0,0,0" VerticalAlignment="Stretch">
-            <TextBlock Name="TxtTitre" Margin="28,46,12,12" Foreground="#5D90E3" FontWeight="Bold" FontSize="30"/>
-            <TextBlock Name="TxtExplicatif" TextWrapping="Wrap" Margin="28,0,24,0" FontSize="20" Foreground="#282828"/>
-            <TextBlock Name="TxtWarning" Margin="28,32,10,0" FontSize="16" Foreground="#B87C46"/>
+            <TextBlock Name="TxtTitre" Margin="28,46,12,12" Foreground="#5D90E3" FontWeight="Bold" FontSize="20"/>
+            <TextBlock Name="TxtExplicatif" TextWrapping="Wrap" Margin="28,0,24,0" FontSize="14" Foreground="#282828"/>
+            <TextBlock Name="TxtWarning" Margin="28,32,10,0" FontSize="12" Foreground="#B87C46"/>
         </StackPanel>
         <!-- Colonne de droite (formulaire) avec Scroll -->
         <ScrollViewer Grid.Column="1" Margin="0,38,0,0" HorizontalAlignment="Center" VerticalScrollBarVisibility="Auto">
             <StackPanel>
-                <Image Name="LogoImage" Width="110" Height="110" Margin="0,10,0,2"/>
-                <TextBlock Text="AutoPilot" HorizontalAlignment="Center" FontSize="23" Foreground="#282828" Margin="0,0,0,18"/>
-                <Border Background="#fff" CornerRadius="32" Margin="28,0,28,24" Padding="36">
+                <Image Name="LogoImage" Width="90" Height="90" Margin="0,10,0,2"/>
+                <TextBlock Text="AutoPilot" HorizontalAlignment="Center" FontSize="16" Foreground="#282828" Margin="0,0,0,18"/>
+                <Border Background="#fff" CornerRadius="32" Margin="28,0,28,24" Padding="20">
                     <StackPanel>
-                        <TextBlock Name="LblSerial" Foreground="#272728" FontWeight="Bold" FontSize="27" Margin="0,0,0,10"/>
-                        <TextBlock Name="LblBrand"  Foreground="#272728" FontWeight="Bold" FontSize="27" Margin="0,0,0,10"/>
-                        <TextBlock Name="LblModel"  Foreground="#272728" FontWeight="Bold" FontSize="27"/>
+                        <TextBlock Name="LblSerial" Foreground="#272728" FontWeight="Bold" FontSize="17" Margin="0,0,0,8"/>
+                        <TextBlock Name="LblBrand"  Foreground="#272728" FontWeight="Bold" FontSize="17" Margin="0,0,0,8"/>
+                        <TextBlock Name="LblModel"  Foreground="#272728" FontWeight="Bold" FontSize="17"/>
                     </StackPanel>
                 </Border>
-                <TextBlock Text="Group Tag" Foreground="#5D90E3" FontWeight="Bold" FontSize="20" Margin="22,2,0,3"/>
-                <ComboBox  Name="GroupTagCombo" Margin="22,0,22,13" FontSize="23" Background="#fff" Foreground="#272728" Height="48">
+                <TextBlock Text="Group Tag" Foreground="#5D90E3" FontWeight="Bold" FontSize="14" Margin="22,2,0,3"/>
+                <ComboBox  Name="GroupTagCombo" Margin="22,0,22,13" FontSize="16" Background="#fff" Foreground="#272728" Height="34">
                     <ComboBoxItem>Aucun</ComboBoxItem>
                     <ComboBoxItem>VIP-Devices</ComboBoxItem>
                     <ComboBoxItem>Direction</ComboBoxItem>
@@ -44,17 +44,17 @@ $Lang = "FR" # Mets "EN" pour anglais
                     <ComboBoxItem>Stagiaire</ComboBoxItem>
                     <ComboBoxItem>Personnalisé</ComboBoxItem>
                 </ComboBox>
-                <TextBox Name="CustomGroupTag" Margin="22,0,22,13" Padding="11" FontSize="23" Background="#fff" Foreground="#272728" Visibility="Collapsed" Height="48"/>
-                <TextBlock Name="LblUpn" Foreground="#5D90E3" FontWeight="Bold" FontSize="20" Margin="22,0,0,3"/>
-                <TextBox Name="UpnBox" Margin="22,0,22,13" Padding="11" FontSize="23" Background="#fff" Foreground="#272728" Height="48"/>
-                <TextBlock Name="LblToken" Foreground="#5D90E3" FontWeight="Bold" FontSize="20" Margin="22,0,0,3"/>
-                <PasswordBox Name="TokenBox" Margin="22,0,22,22" Padding="11" FontSize="23" Background="#fff" Foreground="#272728" Height="48"/>
+                <TextBox Name="CustomGroupTag" Margin="22,0,22,13" Padding="7" FontSize="16" Background="#fff" Foreground="#272728" Visibility="Collapsed" Height="34"/>
+                <TextBlock Name="LblUpn" Foreground="#5D90E3" FontWeight="Bold" FontSize="14" Margin="22,0,0,3"/>
+                <TextBox Name="UpnBox" Margin="22,0,22,13" Padding="7" FontSize="16" Background="#fff" Foreground="#272728" Height="34"/>
+                <TextBlock Name="LblToken" Foreground="#5D90E3" FontWeight="Bold" FontSize="14" Margin="22,0,0,3"/>
+                <PasswordBox Name="TokenBox" Margin="22,0,22,22" Padding="7" FontSize="16" Background="#fff" Foreground="#272728" Height="34"/>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,18,0,18">
-                    <Button Name="BtnSend" Content="Envoyer" Width="155" Height="62" Margin="12" Padding="9"
+                    <Button Name="BtnSend" Content="Envoyer" Width="120" Height="44" Margin="12" Padding="5"
                         Background="#FFC6A0" Foreground="#272728" FontWeight="Bold" BorderThickness="0"  Cursor="Hand"/>
-                    <Button Name="BtnQR" Content="QR Code" Width="120" Height="62" Margin="12" Padding="9"
+                    <Button Name="BtnQR" Content="QR Code" Width="90" Height="44" Margin="12" Padding="5"
                         Background="#5D90E3" Foreground="#fff" FontWeight="Bold" BorderThickness="0" Cursor="Hand"/>
-                    <Button Name="BtnQuit" Content="Quitter" Width="100" Height="62" Margin="12" Padding="9"
+                    <Button Name="BtnQuit" Content="Quitter" Width="70" Height="44" Margin="12" Padding="5"
                         Background="#FFD1B2" Foreground="#B81E1E" FontWeight="Bold" BorderThickness="0" Cursor="Hand"/>
                 </StackPanel>
             </StackPanel>
