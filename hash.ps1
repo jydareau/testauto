@@ -12,12 +12,12 @@ $Lang = "FR" # Mets "EN" pour anglais
         Background="#FFF7F0" FontFamily="Segoe UI" ResizeMode="NoResize" Topmost="True">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="350"/>
+            <ColumnDefinition Width="440"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <!-- Colonne de gauche -->
         <StackPanel Grid.Column="0" Background="#FFE4D6" Margin="0,0,0,0" VerticalAlignment="Stretch">
-            <TextBlock Name="TxtTitre" Margin="28,46,12,12" Foreground="#5D90E3" FontWeight="Bold" FontSize="20"/>
+            <TextBlock Name="TxtTitre" Margin="28,46,12,12" Foreground="#5D90E3" FontWeight="Bold" FontSize="20" TextWrapping="Wrap"/>
             <TextBlock Name="TxtExplicatif" TextWrapping="Wrap" Margin="28,0,24,0" FontSize="14" Foreground="#282828"/>
             <TextBlock Name="TxtWarning" Margin="28,32,10,0" FontSize="12" Foreground="#B87C46"/>
         </StackPanel>
