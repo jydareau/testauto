@@ -4,7 +4,7 @@ Add-Type -AssemblyName PresentationFramework
 if ($PSVersionTable.PSVersion.Major -ge 6) { $OutputEncoding = [System.Text.Encoding]::UTF8 }
 
 # -------- LANGUE --------
-$Lang = "FR" # Mets "EN" pour anglais
+$Lang = "EN" # Mets "EN" pour anglais
 
 # -------- XAML ---------
 [xml]$xaml = @"
